@@ -12,21 +12,21 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 from decouple import config
+import dj_database_url
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
-
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-6-l)v-0nmul^b%=ifj-=8sjn$&wk9e2s42kwv4nx($kdy2qqi9'
+SECRET_KEY = config(
+    'SECRET_KEY', default='django-insecure-6-l)v-0nmul^b%=ifj-=8sjn$&wk9e2s42kwv4nx($kdy2qqi9')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = config('DEBUG', default=False, cast=bool)
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -43,6 +43,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -72,24 +73,15 @@ WSGI_APPLICATION = 'myproject.wsgi.application'
 
 
 # Database
-# https://docs.djangoproject.com/en/5.2/ref/settings/#databases
-
-
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': config('DB_NAME'),
-        'USER': config('DB_USER'),
-        'PASSWORD': config('DB_PASSWORD'),
-        'HOST': config('DB_HOST'),
-        'PORT': config('DB_PORT'),
-    }
+    'default': dj_database_url.config(
+        default=f"mysql://{config('DB_USER')}:{config('DB_PASSWORD')}@{config('DB_HOST')}:{config('DB_PORT')}/{config('DB_NAME')}",
+        conn_max_age=600
+    )
 }
 
 
 # Password validation
-# https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -107,8 +99,6 @@ AUTH_PASSWORD_VALIDATORS = [
 
 
 # Internationalization
-# https://docs.djangoproject.com/en/5.2/topics/i18n/
-
 LANGUAGE_CODE = 'en-us'
 
 TIME_ZONE = 'UTC'
@@ -118,14 +108,12 @@ USE_I18N = True
 USE_TZ = True
 
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.2/howto/static-files/
-
-STATIC_URL = 'static/'
+# Static files
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Default primary key field type
-# https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_URL = '/login/'
